@@ -26,8 +26,10 @@ Mockflow: https://wireframepro.mockflow.com
 
 Swagger Hub: https://swaggerhub.com
 
-# OthersMaterialize:
-http://materializecss.com/
+# Others:
+
+materialize - http://materializecss.com/
+
 
 # To run
 * docker-compose build

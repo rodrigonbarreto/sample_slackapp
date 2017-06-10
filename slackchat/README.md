@@ -20,7 +20,8 @@ rspec-rails (3.6.0) - https://github.com/rspec/rspec-rails
 
 jbuilder (~> 2.5) - https://github.com/rails/jbuilder
 
-#Documentation
+# Documentation
+
 Mockflow: https://wireframepro.mockflow.com
 
 Swagger Hub: https://swaggerhub.com

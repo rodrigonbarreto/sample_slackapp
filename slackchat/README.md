@@ -1,5 +1,6 @@
 A simple chat in Rails for fun.
 # rais 5.0.1
+
 #gems
 devise (4.3.0) - https://github.com/plataformatec/devise
 
@@ -21,6 +22,7 @@ jbuilder (~> 2.5) - https://github.com/rails/jbuilder
 
 #Documentation
 Mockflow: https://wireframepro.mockflow.com
+
 Swagger Hub: https://swaggerhub.com
 
 # OthersMaterialize:

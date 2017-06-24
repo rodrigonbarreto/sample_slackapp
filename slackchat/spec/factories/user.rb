@@ -6,4 +6,3 @@ FactoryGirl.define do
    password     'secret123'
  end
 end
-view raw

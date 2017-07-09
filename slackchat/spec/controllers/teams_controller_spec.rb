@@ -1,109 +1,80 @@
 require 'rails_helper'
 
-RSpec.describe TeamsController, type: :controller do
+RSpec.describe TeamUsersController, type: :controller do
   include Devise::Test::ControllerHelpers
 
   before(:each) do
+    request.env["HTTP_ACCEPT"] = 'application/json'
+
     @request.env["devise.mapping"] = Devise.mappings[:user]
     @current_user = FactoryGirl.create(:user)
     sign_in @current_user
   end
 
-  describe "GET #index" do
-    it "returns http success" do
-      get :index
-      expect(response).to have_http_status(:success)
-    end
-  end
+  describe "GET #crete" do
+    # Sem isto os testes não renderizam o json
+    render_views
 
-  describe "GET #show" do
+    context "Team owner" do
+      before(:each) do
+        @team = create(:team, user: @current_user)
+        @guest_user = create(:user)
 
-    context "team exists" do
-      context "User is the owner of the team" do
-        it "Returns success" do
-          team = create(:team, user: @current_user)
-          get :show, params: {slug: team.slug}
-
-          expect(response).to have_http_status(:success)
-        end
+        post :create, params: { team_user: { email: @guest_user.email, team_id: @team.id } }
       end
 
-      context "User is member of the team" do
-        it "Returns success" do
-          team = create(:team)
-          team.users << @current_user
-          get :show, params: {slug: team.slug}
-
-          expect(response).to have_http_status(:success)
-        end
-      end
-
-      context "User is not the owner or member of the team" do
-        it "Redirects to root" do
-          team = create(:team)
-          get :show, params: {slug: team.slug}
-
-          expect(response).to redirect_to('/')
-        end
-      end
-    end
-
-    context "team don't exists" do
-      it "Redirects to root" do
-        team_attributes = attributes_for(:team)
-        get :show, params: { slug: team_attributes[:slug] }
-
-        expect(response).to redirect_to('/')
-      end
-    end
-
-  end
-
-  describe "POST #create" do
-    before(:each) do
-      @team_attributes = attributes_for(:team, user: @current_user)
-      post :create, params: {team: @team_attributes}
-    end
-
-    it "Redirect to new team" do
-      expect(response).to have_http_status(302)
-      expect(response).to redirect_to("/#{@team_attributes[:slug]}")
-    end
-
-    it "Create team with right attributes" do
-      expect(Team.last.user).to eql(@current_user)
-      expect(Team.last.slug).to eql(@team_attributes[:slug])
-    end
-  end
-
-  describe "DELETE #destroy" do
-    before(:each) do
-      request.env["HTTP_ACCEPT"] = 'application/json'
-    end
-
-    context "User is the Team Owner" do
       it "returns http success" do
-        team = create(:team, user: @current_user)
-        delete :destroy, params: {id: team.id}
+        expect(response).to have_http_status(:success)
+      end
+
+      it "Return the right params" do
+        response_hash = JSON.parse(response.body)
+
+        expect(response_hash["user"]["name"]).to eql(@guest_user.name)
+        expect(response_hash["user"]["email"]).to eql(@guest_user.email)
+        expect(response_hash["team_id"]).to eql(@team.id)
+      end
+    end
+
+    context "Team not owner" do
+      before(:each) do
+        @team = create(:team)
+        @guest_user = create(:user)
+      end
+
+      it "returns http forbidden" do
+        post :create, params: { team_user: { email: @guest_user.email, team_id: @team.id } }
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+  end
+
+  describe "GET #destroy" do
+    context "Team owner" do
+      before(:each) do
+        @team = create(:team, user: @current_user)
+        @guest_user = create(:user)
+        @team.users << @guest_user
+      end
+
+      it "returns http success" do
+        delete :destroy, params: { id: @guest_user.id, team_id: @team.id }
         expect(response).to have_http_status(:success)
       end
     end
 
-    context "User isn't the team Owner" do
-      it "returns http forbidden" do
-        team = create(:team)
-        delete :destroy, params: {id: team.id}
-        expect(response).to have_http_status(:forbidden)
+    context "Team not owner" do
+      before(:each) do
+        @team = create(:team)
+        @guest_user = create(:user)
+        @team.users << @guest_user
       end
-    end
 
-    context "User is member of the team" do
       it "returns http forbidden" do
-        team = create(:team)
-        team.users << @current_user
-        delete :destroy, params: {id: team.id}
+        delete :destroy, params: { id: @guest_user.id, team_id: @team.id }
         expect(response).to have_http_status(:forbidden)
       end
     end
   end
+
 end
